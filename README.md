@@ -1,6 +1,16 @@
-# Dynamic-Neural-Cellular-Automata
+# Motion-Neural-Cellular-Automata
 This project, inspired by Distill.pub Grow NCA (https://distill.pub/2020/growing-ca/), wants to reproduce a target image that is able to answer to specific inputs (using GOAL NCA Architecture: https://arxiv.org/pdf/2205.06806) and achieve different goals as Chemotaxis and Random Exploration.
 
+## Demonstrations
+
+Here are some visual results of the trained models across different phases and environments, featuring three different target organisms: Giraffe, Jellyfish, and Salamander.
+
+| Phase / Target | Giraffe | Jellyfish | Salamander |
+| :--- | :---: | :---: | :---: |
+| **Phase 1: Morphogenesis**<br>Growing from a single seed | ![](phase1_morphogenesis_giraffa.gif) | ![](phase1_morphogenesis_jelly.gif) | ![](phase1_morphogenesis_salamandra.gif) |
+| **Phase 2: Chemotaxis**<br>Moving towards a dynamic goal | ![](phase2_chemotaxis_giraffa.gif) | ![](phase2_chemotaxis_jelly.gif) | ![](phase2_chemotaxis_salamandra.gif) |
+| **Phase 2: Obstacle Avoidance**<br>Repulsive forces and vortex effect | ![](phase2_chemotaxis_obs_giraffa.gif) | ![](phase2_chemotaxis_obs_jelly.gif) | ![](phase2_chemotaxis_obs_salamandra.gif) |
+| **Phase 3: Ecosystem & Mitosis**<br>Random exploration and life cycle | ![](path/to/ecosystem_giraffa.gif) | ![](path/to/ecosystem_jelly.gif) | ![](path/to/ecosystem_salamandra.gif) |
 
 ## Prerequisites
 
