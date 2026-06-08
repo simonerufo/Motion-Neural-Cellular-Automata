@@ -85,7 +85,7 @@ def run_inference_chemotaxis(model, device, grid_size=96, use_obstacles=True, sa
         obs_intensity = np.zeros((grid_size, grid_size))
         for ox, oy in obstacles_list:
             obs_intensity += np.exp(-((X - ox)**2 + (Y - oy)**2) / (2 * 6.0**2)) 
-        /        
+               
         bg = np.zeros((grid_size, grid_size, 3))
         bg[..., 0] = np.clip(chem_intensity * 0.9 - obs_intensity, 0, 1) 
         bg[..., 1] = np.clip(chem_intensity * 0.3 + obs_intensity * 0.5, 0, 1) 
