@@ -11,12 +11,13 @@ def main():
     parser.add_argument("--action", choices=["train1", "train2", "train_all", "inference1", "inference2"], required=True)
     parser.add_argument("--experiment", choices=["chemotaxis", "chemotaxis_obs", "ecosystem"], required=True)
     parser.add_argument("--target", type=str, required=True, help="Path to the target image")
+    parser.add_argument("--save_gif", action="store_true", help="Save inference as GIF instead of displaying it on screen")
+    
     args = parser.parse_args()
 
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     GRID_SIZE = 64
     
-    # --- 1. CREATURE IDENTIFICATION ---
     target_filename = os.path.basename(args.target).lower()
     if "jelly" in target_filename:
         creature_name = "jelly"
@@ -27,11 +28,8 @@ def main():
     else:
         creature_name = "base"
 
-    # --- 2. DYNAMIC WEIGHT NAMES BUILDER ---
-    # Keeping the Italian prefix strings to maintain compatibility with existing local .pth files
     PHASE1_WEIGHTS = f"weights/modello_fase1_forma_{creature_name}.pth"
 
-    # Both chemotaxis variations use the exact same trained weights!
     if args.experiment in ["chemotaxis", "chemotaxis_obs"]:
         PHASE2_WEIGHTS = f"weights/modello_chemiotassi_{creature_name}.pth"
     elif args.experiment == "ecosystem":
@@ -45,11 +43,12 @@ def main():
     print(f"Detected creature: {creature_name}")
     print(f"Phase 1 Weights file: {PHASE1_WEIGHTS}")
     print(f"Phase 2 Weights file: {PHASE2_WEIGHTS}")
+    print(f"Save GIF Mode: {'ENABLED' if args.save_gif else 'DISABLED'}")
     print("========================\n")
     
-    # -----------------------------
-    # TRAINING LOGIC
-    # -----------------------------
+    if args.save_gif:
+        os.makedirs("gifs", exist_ok=True)
+    
     if args.action in ["train1", "train_all"]:
         base_target = load_target_image(args.target, size=GRID_SIZE, device=DEVICE)
         model = train_morphogenesis(model, base_target, epochs=8000, grid_size=GRID_SIZE, batch_size=8, device=DEVICE)
@@ -67,7 +66,6 @@ def main():
             else:
                 raise FileNotFoundError(f"Error: {PHASE1_WEIGHTS} not found! Run train1 first.")
 
-        # Train logic remains identical whether we plan to use obstacles later or not
         if args.experiment in ["chemotaxis", "chemotaxis_obs"]:
             model = train_chemotaxis(model, base_target, epochs=10000, grid_size=GRID_SIZE, batch_size=8, device=DEVICE)
         elif args.experiment == "ecosystem":
@@ -76,15 +74,14 @@ def main():
         torch.save(model.state_dict(), PHASE2_WEIGHTS)
         print(f"Phase 2 weights saved in {PHASE2_WEIGHTS}")
 
-    # -----------------------------
-    # INFERENCE LOGIC
-    # -----------------------------
     elif args.action == "inference1":
         if not os.path.exists(PHASE1_WEIGHTS):
             raise FileNotFoundError(f"Error: {PHASE1_WEIGHTS} not found!")
         model.load_state_dict(torch.load(PHASE1_WEIGHTS, map_location=DEVICE, weights_only=True))
         model.eval()
-        run_inference_phase1(model, DEVICE, grid_size=64)
+        
+        gif_path = f"gifs/phase1_morphogenesis_{creature_name}.gif" if args.save_gif else None
+        run_inference_phase1(model, DEVICE, grid_size=64, save_path=gif_path)
 
     elif args.action == "inference2":
         if not os.path.exists(PHASE2_WEIGHTS):
@@ -92,13 +89,14 @@ def main():
         model.load_state_dict(torch.load(PHASE2_WEIGHTS, map_location=DEVICE, weights_only=True))
         model.eval()
         
-        # Here we dynamically switch the use_obstacles flag!
+        gif_path = f"gifs/phase2_{args.experiment}_{creature_name}.gif" if args.save_gif else None
+        
         if args.experiment == "chemotaxis":
-            run_inference_chemotaxis(model, DEVICE, grid_size=96, use_obstacles=False)
+            run_inference_chemotaxis(model, DEVICE, grid_size=96, use_obstacles=False, save_path=gif_path)
         elif args.experiment == "chemotaxis_obs":
-            run_inference_chemotaxis(model, DEVICE, grid_size=96, use_obstacles=True)
+            run_inference_chemotaxis(model, DEVICE, grid_size=96, use_obstacles=True, save_path=gif_path)
         elif args.experiment == "ecosystem":
-            run_inference_ecosystem(model, DEVICE, grid_size=128)
+            run_inference_ecosystem(model, DEVICE, grid_size=128, save_path=gif_path)
 
 if __name__ == "__main__":
     main()

@@ -3,8 +3,10 @@ import torch.nn.functional as F
 import torch.optim as optim
 import random
 import math
+import matplotlib.pyplot as plt
 from .utils import create_seed, get_com, shift_target
 from .physics import generate_chemotaxis_goal, rotate_target, apply_slash_damage
+
 
 def train_morphogenesis(model, base_target, epochs=8000, grid_size=64, batch_size=8, device=None):
     optimizer = optim.Adam(model.parameters(), lr=2e-3)
@@ -13,6 +15,7 @@ def train_morphogenesis(model, base_target, epochs=8000, grid_size=64, batch_siz
     print(f"--- Starting Phase 1: Morphogenesis on {device} ---")
     model.train()
     
+    loss_history = [] 
     for i in range(epochs):
         batch_indices = random.sample(range(256), batch_size)
         x = pool[batch_indices].clone().to(device)
@@ -37,6 +40,18 @@ def train_morphogenesis(model, base_target, epochs=8000, grid_size=64, batch_siz
         
         if i % 100 == 0:
             print(f"Epoch {i:05d} | Loss: {loss.item():.4f}")
+            loss_history.append(loss.item())
+
+    plt.figure(figsize=(6, 4))
+    plt.plot(range(0, epochs, 100), loss_history, label='Train Loss', color='blue')
+    plt.xlabel('Epochs')
+    plt.ylabel('MSE Loss')
+    plt.title('Morphogenesis Training Loss')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend()
+    plt.savefig('loss_morphogenesis.pdf', format='pdf', bbox_inches='tight')
+    plt.close()
+
     return model
 
 def train_chemotaxis(model, base_target, epochs=10000, grid_size=64, batch_size=8, device=None):
@@ -45,7 +60,7 @@ def train_chemotaxis(model, base_target, epochs=10000, grid_size=64, batch_size=
     
     print(f"--- Starting Phase 2: Chemotaxis on {device} ---")
     model.train()
-    
+    loss_history = []
     for i in range(epochs):
         batch_indices = random.sample(range(256), batch_size)
         x = pool[batch_indices].clone().to(device)
@@ -92,6 +107,17 @@ def train_chemotaxis(model, base_target, epochs=10000, grid_size=64, batch_size=
         
         if i % 100 == 0:
             print(f"Epoch {i:05d} | Loss: {loss.item():.4f}")
+            loss_history.append(loss.item())
+    
+    plt.figure(figsize=(6, 4))
+    plt.plot(range(0, epochs, 100), loss_history, label='Train Loss', color='blue')
+    plt.xlabel('Epochs')
+    plt.ylabel('MSE Loss')
+    plt.title('Chemotaxis Training Loss')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend()
+    plt.savefig('loss_chemotaxis.pdf', format='pdf', bbox_inches='tight')
+    plt.close()
     return model
 
 def train_autonomous_life(model, base_target, epochs=10000, grid_size=64, batch_size=8, device=None):
@@ -100,7 +126,7 @@ def train_autonomous_life(model, base_target, epochs=10000, grid_size=64, batch_
     
     print(f"--- Starting Phase 2: Ecosystem/Mitosis on {device} ---")
     model.train()
-    
+    loss_history = []
     for i in range(epochs):
         batch_indices = random.sample(range(256), batch_size)
         x = pool[batch_indices].clone().to(device)
@@ -149,4 +175,16 @@ def train_autonomous_life(model, base_target, epochs=10000, grid_size=64, batch_
         
         if i % 100 == 0:
             print(f"Epoch {i:05d} | Loss: {loss.item():.4f}")
+            loss_history.append(loss.item())
+
+    plt.figure(figsize=(6, 4))
+    plt.plot(range(0, epochs, 100), loss_history, label='Train Loss', color='blue')
+    plt.xlabel('Epochs')
+    plt.ylabel('MSE Loss')
+    plt.title('Ecosystem Training Loss')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend()
+    plt.savefig('loss_ecosystem.pdf', format='pdf', bbox_inches='tight')
+    plt.close()
+
     return model
