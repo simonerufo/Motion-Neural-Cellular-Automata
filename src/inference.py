@@ -26,9 +26,11 @@ def run_inference_phase1(model, device, grid_size=64, save_path=None):
         nonlocal x
         with torch.no_grad():
             for _ in range(4): x = model(x)
-        img_plot.set_data(to_rgb_phase1(x))
         
-        frames_to_save = [0, 10, 25, 50,100] # 
+        img_data = to_rgb_phase1(x)
+        img_plot.set_data(img_data)
+
+        frames_to_save = [0, 10, 25, 50,100] 
         if frame in frames_to_save:
             plt.imsave(f'morpho_step_{frame}.png', img_data)
         
