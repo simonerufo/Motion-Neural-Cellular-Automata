@@ -5,20 +5,17 @@ import random
 import math
 
 def generate_chemotaxis_goal(com_x, com_y, target_x, target_y, num_steps_total=64, obstacles=None):
-    # Attraction force (towards target)
     dx_attr = target_x - com_x
     dy_attr = target_y - com_y
     norm_attr = torch.sqrt(dx_attr**2 + dy_attr**2) + 1e-8
     dir_x_attr = dx_attr / norm_attr
     dir_y_attr = dy_attr / norm_attr
     
-    # Biological noise (Brownian motion)
     noise_x = (torch.rand_like(com_x) - 0.5) * 0.1
     noise_y = (torch.rand_like(com_y) - 0.5) * 0.1
     dir_x_attr += noise_x
     dir_y_attr += noise_y
     
-    # Repulsion force (away from obstacles)
     dir_x_rep = torch.zeros_like(com_x)
     dir_y_rep = torch.zeros_like(com_y)
     
@@ -28,22 +25,18 @@ def generate_chemotaxis_goal(com_x, com_y, target_x, target_y, num_steps_total=6
             dx_obs = com_x - obs_x
             dy_obs = com_y - obs_y
             dist_sq = dx_obs**2 + dy_obs**2
-            # Lifesaver clamping to avoid division by zero
             dist_sq = torch.clamp(dist_sq, min=25.0) 
             force = repulsion_strength / dist_sq
             
-            # Radial force
             rad_x = (dx_obs / torch.sqrt(dist_sq)) * force
             rad_y = (dy_obs / torch.sqrt(dist_sq)) * force
             
-            # Tangential force (Vortex effect for sliding)
             tang_x = -rad_y * 1.5
             tang_y = rad_x * 1.5
             
             dir_x_rep += (rad_x + tang_x)
             dir_y_rep += (rad_y + tang_y)
 
-    # Resulting vector
     tot_x = dir_x_attr + dir_x_rep
     tot_y = dir_y_attr + dir_y_rep
     
@@ -83,7 +76,6 @@ def apply_slash_damage(x, grid_size):
         if random.random() < 0.5:
             cut_x = random.randint(grid_size//3, 2*grid_size//3)
             cut_width = random.randint(4, 8)
-            # 50% chance for vertical cut, 50% for horizontal cut
             if random.random() < 0.5:
                 x[b, :, :, cut_x:cut_x+cut_width] = 0.0 
             else:

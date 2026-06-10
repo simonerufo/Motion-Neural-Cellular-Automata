@@ -21,7 +21,6 @@ def get_com(x, device, grid_size):
     return com_x.squeeze(1), com_y.squeeze(1)
 
 def shift_target(target_tensor, shift_x, shift_y):
-    """Shifts the image in a toroidal way on the grid"""
     return torch.roll(target_tensor, shifts=(shift_y, shift_x), dims=(2, 3))
 
 def load_target_image(filepath, size=64, device='cpu'):

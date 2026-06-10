@@ -6,9 +6,8 @@ class CAModel(nn.Module):
     def __init__(self, channel_n=16, hidden_size=128, goal_dim=2, circular_padding=False):
         super(CAModel, self).__init__()
         self.channel_n = channel_n
-        self.circular_padding = circular_padding # Switch for toroidal world (donut grid)
-        
-        # --- 1. PERCEPTION SETUP ---
+        self.circular_padding = circular_padding         
+        # perception
         sobel_x = torch.tensor([[-1.0, 0.0, 1.0], 
                                 [-2.0, 0.0, 2.0], 
                                 [-1.0, 0.0, 1.0]]) / 8.0
@@ -22,14 +21,14 @@ class CAModel(nn.Module):
         self.register_buffer('weight_x', weight_x)
         self.register_buffer('weight_y', weight_y)
 
-        # --- 2. NCA UPDATE NETWORK ---
+        # update
         self.fc1 = nn.Conv2d(channel_n * 3, hidden_size, kernel_size=1)
         self.fc2 = nn.Conv2d(hidden_size, channel_n, kernel_size=1)
         
         nn.init.zeros_(self.fc2.weight)
         nn.init.zeros_(self.fc2.bias)
 
-        # --- 3. GOAL ENCODER ---
+        # goal encoder
         self.goal_encoder = nn.Sequential(
             nn.Linear(goal_dim, 32),
             nn.ReLU(),
@@ -42,7 +41,7 @@ class CAModel(nn.Module):
         nn.init.zeros_(self.goal_encoder[-1].bias)
     
     def perceive(self, x):
-        # Switch to choose the boundary physics
+
         if self.circular_padding:
             x_pad = F.pad(x, (1, 1, 1, 1), mode='circular')
             grad_x = F.conv2d(x_pad, self.weight_x, padding=0, groups=self.channel_n)
